@@ -4,4 +4,4 @@ The process of learn DeepLearning is a interesting and  attractive trip
 ##### [天池AI](https://tianchi.aliyun.com/course/courseConsole?spm=5176.12282070.0.0.5e8d2042j9nhIv&courseId=198&chapterIndex=4&sectionIndex=10)
 ##### 框架的高层封装是真香！
 ### Tensorflow必胜！
-### 经典神经网络AlexNet
+### 经典神经网络AlexNet、VGG
