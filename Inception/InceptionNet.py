@@ -1,8 +1,8 @@
 '''
 author ambition
-date 
-function 
-version
+date 2019.10.20
+function inception网络
+version 2.0
 '''
 
 import keras
@@ -34,7 +34,7 @@ def dataset(path):
     # writer = tf.python_io.TFRecordWriter("train.tfrecords")
     data_sets=[]
     data_labels=[]
-    k=0#k表示数据量
+    k=0
     for index, name in enumerate(classes):
         class_path = path +'/'+ name + '/'
         for i,image_name in enumerate(os.listdir(class_path)):
@@ -45,8 +45,7 @@ def dataset(path):
             # print(type(img))
             data_sets.append(img)
             #整理成标签
-            #对于这个我们不能再做成onehot了
-            onehot=[]
+            onehot = []
             hot=classes.index(name)
             for j in range(10):
                 if j ==hot:
@@ -171,26 +170,22 @@ def googlenet(inputs,num_class,is_training=None,verbose=False,reuse=None):
 
 if __name__ == '__main__':
     #真实数据
-    (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-    # x_train, y_train = dataset(train_path)
-    # x_test, y_test = dataset(test_path)
-    num_batch=len(x_train)//BATCH_SIZE+1
+    # (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+    x_train, y_train = dataset(train_path)
+    x_test, y_test = dataset(test_path)
     #用于前向传播搭建网络的占位输入输出
-    x=tf.placeholder(tf.float32,shape=(None,32,32,3))#
-    y_=tf.placeholder(tf.float32,shape=(None,1))
     #设置函数参数默认值
     with slim.arg_scope([slim.conv2d]) as sc:
         conv_scope = sc
         is_training = tf.placeholder(tf.bool, name='is_trainging')
         # 预测结果
         with slim.arg_scope(conv_scope):
-            train_out = googlenet(x,10,is_training=is_training,verbose=True)
+            train_out = googlenet(x_train,10,is_training=is_training,verbose=True)
             # val_out=googlenet(x,10,is_training=is_training,reuse=True)
 
         with tf.variable_scope('loss'):
-            print(type(y_),type(train_out))
-            train_loss=tf.losses.sparse_softmax_cross_entropy(labels=y_,logits=train_out,scope='train_loss')
-
+            print(type(y_train),type(train_out))
+            train_loss=tf.nn.softmax_cross_entropy_with_logits(train_out,y_train)
             # print(train_loss)
             # valid_loss=tf.losses.sparse_softmax_cross_entropy(labels=y_,logits=val_out,scope='valid_loss')
 
@@ -200,7 +195,7 @@ if __name__ == '__main__':
                 #tf.argmax(input,axis)返回指定轴的最大值的索引，axis<=0表示列,axis>0表示行
                 #这的y应该为分类结果的标号
 
-                train_acc=tf.reduce_mean(tf.cast(tf.equal(tf.argmax(train_out,axis=-1,output_type=tf.int32),y_),tf.float32))
+                train_acc=tf.reduce_mean(tf.cast(tf.equal(tf.argmax(train_out,axis=-1,output_type=tf.int32),y_train),tf.float32))
 
             # with tf.name_scope('valid'):
             #     valid_acc=tf.reduce_mean(tf.cast(tf.equal(tf.argmax(val_out,axis=-1,output_type=tf.int32),y_test),tf.float32))
@@ -216,8 +211,7 @@ if __name__ == '__main__':
             init=tf.global_variables_initializer()
             sess.run(init)
             for i in range(50000):#
-                xs,ys=x_train.data.batch(BATCH_SIZE),y_train.data.batch(BATCH_SIZE)
-                _,loss,accuracy=sess.run([train_op,train_loss,train_acc],feed_dict={is_training:True,x:xs,y_:ys})
+                _,loss,accuracy=sess.run([train_op,train_loss,train_acc],feed_dict={is_training:True})
                 if i%1000==0:
                     print('after {} training steps,the loss is {},the accuray is {}'.format(i,loss,accuracy))
 
